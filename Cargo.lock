@@ -24,6 +24,7 @@ checksum = "b3d1d046238990b9cf5bcde22a3fb3584ee5cf65fb2765f454ed428c7a0063da"
 name = "app"
 version = "0.1.0"
 dependencies = [
+ "colorutils-rs",
  "histogram_equalization",
  "image",
 ]
@@ -311,7 +312,7 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "histogram_equalization"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "colorutils-rs",
  "num-traits",
