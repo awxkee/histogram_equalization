@@ -1,0 +1,1 @@
+Added CLAHE, AHE, Histogram equalization
