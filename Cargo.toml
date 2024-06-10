@@ -2,7 +2,7 @@ workspace = { members = ["./src/app"] }
 
 [package]
 name = "histogram_equalization"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 description = "Histogram equalization"
 readme = "README.md"
@@ -13,7 +13,7 @@ documentation = "https://github.com/awxkee/hist-equal"
 categories = ["multimedia::images", "multimedia::video"]
 homepage = "https://github.com/awxkee/hist-equal"
 repository = "https://github.com/awxkee/hist-equal"
-exclude = ["*.jpg"]
+exclude = ["*.jpg", "assets/*"]
 
 [features]
 nightly_avx512 = ["yuvutils-rs/nightly_avx512"]
