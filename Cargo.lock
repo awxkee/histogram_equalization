@@ -24,7 +24,7 @@ checksum = "b3d1d046238990b9cf5bcde22a3fb3584ee5cf65fb2765f454ed428c7a0063da"
 name = "app"
 version = "0.1.0"
 dependencies = [
- "colorutils-rs",
+ "colorutils-rs 0.3.5",
  "histogram_equalization",
  "image",
 ]
@@ -95,9 +95,9 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "bitstream-io"
-version = "2.3.0"
+version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c12d1856e42f0d817a835fe55853957c85c8c8a470114029143d3f12671446e"
+checksum = "eac55ccd165b210af261b1812cf29a0b9e6303b480ff0df603c037129ff357fe"
 
 [[package]]
 name = "built"
@@ -164,9 +164,18 @@ checksum = "3d7b894f5411737b7867f4827955924d7c254fc9f4d91a6aad6b097804b1018b"
 
 [[package]]
 name = "colorutils-rs"
-version = "0.3.3"
+version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b97ee05c67487c7db836a7b6aad3331b86fdaac65ace6a2be528c5ba454a15eb"
+checksum = "83f3edb13b1c70a20cb5bc77e1e3ceecc513eabb09fde143a08bfe7db71d434d"
+dependencies = [
+ "half",
+]
+
+[[package]]
+name = "colorutils-rs"
+version = "0.4.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "54f52323799eb46a7b83e1b527066896511cf7345f0165efb0a3d4c1f1507427"
 dependencies = [
  "half",
 ]
@@ -312,9 +321,9 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "histogram_equalization"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
- "colorutils-rs",
+ "colorutils-rs 0.4.10",
  "num-traits",
  "yuvutils-rs",
 ]
@@ -463,9 +472,9 @@ dependencies = [
 
 [[package]]
 name = "memchr"
-version = "2.7.2"
+version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c8640c5d730cb13ebd907d8d04b52f55ac9a2eec55b440c8892f40d56c76c1d"
+checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 
 [[package]]
 name = "minimal-lexical"
@@ -1013,9 +1022,9 @@ dependencies = [
 
 [[package]]
 name = "yuvutils-rs"
-version = "0.2.7"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2f1b553efe1c2ee6965d3e0272e7a9fbcf36159b2190867d96755b334426a7d"
+checksum = "30b579307cc265a693bc908bf2dbde8578ba7e7fe1a7dcc71dbd6b84e063f356"
 
 [[package]]
 name = "zune-core"
