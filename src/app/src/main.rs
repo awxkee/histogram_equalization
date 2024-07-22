@@ -2,10 +2,10 @@ use colorutils_rs::rgb_to_rgba;
 use image::GenericImageView;
 use image::io::Reader as ImageReader;
 
-use histogram_equalization::{clahe_hsl_bgra, clahe_hsl_rgba, clahe_hsv_bgra, clahe_hsv_rgba, clahe_lab_rgb, clahe_lab_rgba, clahe_luv_bgra, clahe_luv_rgba, ClaheGridSize, hist_equal_luv_rgb};
+use histogram_equalization::{clahe_jzazbz_bgra, clahe_lab_bgra, clahe_luv_bgra, clahe_oklab_bgra, ClaheGridSize};
 
 fn main() {
-    let img = ImageReader::open("assets/IMG_5902.jpg")
+    let img = ImageReader::open("assets/asset_1.jpg")
         .unwrap()
         .decode()
         .unwrap();
@@ -39,16 +39,16 @@ fn main() {
     let stride = dimensions.0 as usize * channels;
     let mut dst_bytes: Vec<u8> = vec![0; stride * dimensions.1 as usize];
 
-    clahe_hsl_bgra(
+    clahe_oklab_bgra(
         src_bytes,
         stride as u32,
         &mut dst_bytes,
         stride as u32,
         dimensions.0,
         dimensions.1,
-        3f32,
+        0.7f32,
         ClaheGridSize::new(8, 8),
-        128,
+        256,
     );
 
     let stride = dimensions.0 * 4;
@@ -62,7 +62,7 @@ fn main() {
 
     if channels == 4 {
         image::save_buffer(
-            "converted_luv.png",
+            "converted_oklab.png",
             &dst_bytes,
             dimensions.0,
             dimensions.1,
@@ -71,7 +71,7 @@ fn main() {
             .unwrap();
     } else {
         image::save_buffer(
-            "converted_luv.jpg",
+            "converted_oklab.jpg",
             &dst_bytes,
             dimensions.0,
             dimensions.1,

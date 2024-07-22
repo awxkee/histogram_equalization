@@ -9,6 +9,8 @@ All methods may perform histogram equalization in:
 - [x] HSL
 - [x] CIE L\*a\*b
 - [x] CIE L\*u\*v
+- [x] Oklab
+- [x] Jzazbz
 
 All color spaces as it is have different properties and of course results.
 

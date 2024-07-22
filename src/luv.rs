@@ -41,8 +41,8 @@ pub(crate) fn generic_image_to_luv<const IMAGE: u8>(
             unsafe {
                 *new_slice.get_unchecked_mut(h_px) = (luv.l * full_scale).round().min(scale) as u16;
                 // Just for storing in u16 adding 500 to subtract 500 after to keep values in positive range
-                *new_slice.get_unchecked_mut(h_px + 1) = (luv.u + 500f32) as u16;
-                *new_slice.get_unchecked_mut(h_px + 2) = (luv.v + 500f32) as u16;
+                *new_slice.get_unchecked_mut(h_px + 1) = (luv.u * 100f32 + 100f32) as u16;
+                *new_slice.get_unchecked_mut(h_px + 2) = (luv.v * 100f32 + 100f32) as u16;
                 if image_configuration.has_alpha() {
                     let a = *src.get_unchecked(
                         src_offset + px + image_configuration.get_a_channel_offset(),
@@ -82,8 +82,8 @@ pub(crate) fn luv_to_generic_image<const IMAGE: u8>(
 
             let l = unsafe { *source_slice.get_unchecked(px) } as f32 * full_scale;
 
-            let u = unsafe { *source_slice.get_unchecked(px + 1) } as f32 - 500f32;
-            let v = unsafe { *source_slice.get_unchecked(px + 2) } as f32 - 500f32;
+            let u = (unsafe { *source_slice.get_unchecked(px + 1) } as f32 - 100.) / 100.;
+            let v = (unsafe { *source_slice.get_unchecked(px + 2) } as f32 - 100.) / 100.;
 
             let rgb = Luv::new(l, u, v);
             let rgb = rgb.to_rgb();
