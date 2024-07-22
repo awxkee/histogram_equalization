@@ -11,6 +11,7 @@ All methods may perform histogram equalization in:
 - [x] CIE L\*u\*v
 - [x] Oklab
 - [x] Jzazbz
+- [x] Oklch
 
 All color spaces as it is have different properties and of course results.
 

@@ -4,10 +4,7 @@ use crate::hist_support::{
 };
 
 #[allow(dead_code)]
-pub(crate) fn clahe_impl_u16_proxy<
-    const CHANNELS: usize,
-    const IMPLEMENTATION: u8,
->(
+pub(crate) fn clahe_impl_u16_proxy<const CHANNELS: usize, const IMPLEMENTATION: u8>(
     src: &[u8],
     src_stride: u32,
     dst: &mut [u8],
@@ -148,7 +145,7 @@ pub(crate) fn clahe_impl_u16_proxy<
                 histograms[(r + 1).min(tiles_vertical as usize - 1usize)][c].bins[value] as f32;
             let bin4 = histograms[(r + 1).min(tiles_vertical as usize - 1usize)]
                 [(c + 1).min(tiles_horizontal as usize - 1usize)]
-                .bins[value] as f32;
+            .bins[value] as f32;
             let interpolated = blerp(bin1, bin2, bin3, bin4, x1, y1);
             unsafe {
                 *hsv_image.get_unchecked_mut(hsv_offset + px + 0) =

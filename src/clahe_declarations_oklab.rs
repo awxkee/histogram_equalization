@@ -1,9 +1,9 @@
 use crate::clahe_call_proxy::clahe_impl_u16_proxy;
-use crate::ClaheGridSize;
 use crate::hist_support::AheImplementation;
 use crate::oklab::{
     bgra_to_oklab, oklab_to_bgra, oklab_to_rgb, oklab_to_rgba, rgb_to_oklab, rgba_to_oklab,
 };
+use crate::ClaheGridSize;
 
 /// Converts image to oklab, performs CLAHE and reverts back into RGB
 ///
@@ -138,7 +138,7 @@ pub fn ahe_oklab_rgba(
     grid_size: ClaheGridSize,
     bins_count: usize,
 ) {
-    clahe_impl_u16_proxy::<4,  { AheImplementation::Ahe as u8 }>(
+    clahe_impl_u16_proxy::<4, { AheImplementation::Ahe as u8 }>(
         src,
         src_stride,
         dst,

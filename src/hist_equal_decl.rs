@@ -262,7 +262,6 @@ pub fn hist_equal_lab_bgra(
     );
 }
 
-
 /// Converts image to LUV, performs histogram equalization and reverts back into RGB
 ///
 /// # Arguments

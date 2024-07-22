@@ -48,7 +48,8 @@ pub(crate) fn generic_image_to_jzazbz<const IMAGE: u8>(
             );
             let jzazbz = Jzazbz::from_rgb(rgb, TransferFunction::Srgb);
             unsafe {
-                *new_slice.get_unchecked_mut(x) = (jzazbz.jz * full_scale).round().min(scale) as u16;
+                *new_slice.get_unchecked_mut(x) =
+                    (jzazbz.jz * full_scale).round().min(scale) as u16;
                 // Just for storing in u16 adding 500 to subtract 500 after to keep values in positive range
                 *color_planes.get_unchecked_mut(color_planes_offset + cx + 0) = jzazbz.az;
                 *color_planes.get_unchecked_mut(color_planes_offset + cx + 1) = jzazbz.bz;

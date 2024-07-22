@@ -1,9 +1,9 @@
 use crate::clahe_call_proxy::clahe_impl_u16_proxy;
-use crate::ClaheGridSize;
 use crate::hist_support::AheImplementation;
 use crate::jzazbz::{
     bgra_to_jzazbz, jzazbz_to_bgra, jzazbz_to_rgb, jzazbz_to_rgba, rgb_to_jzazbz, rgba_to_jzazbz,
 };
+use crate::ClaheGridSize;
 
 /// Converts image to jzazbz, performs CLAHE and reverts back into RGB
 ///
@@ -138,7 +138,7 @@ pub fn ahe_jzazbz_rgba(
     grid_size: ClaheGridSize,
     bins_count: usize,
 ) {
-    clahe_impl_u16_proxy::<4,  { AheImplementation::Ahe as u8 }>(
+    clahe_impl_u16_proxy::<4, { AheImplementation::Ahe as u8 }>(
         src,
         src_stride,
         dst,

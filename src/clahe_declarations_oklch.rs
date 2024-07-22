@@ -1,57 +1,23 @@
-use yuvutils_rs::{
-    bgra_to_ycgco444, rgb_to_ycgco444, rgba_to_ycgco444, ycgco444_to_rgb,
-    ycgco444_with_alpha_to_bgra, ycgco444_with_alpha_to_rgba, YuvRange,
-};
-
-use crate::clahe_yuv_impl::clahe_yuv_impl;
+use crate::clahe_call_proxy::clahe_impl_u16_proxy;
 use crate::hist_support::AheImplementation;
+use crate::oklch::{
+    bgra_to_oklch, oklch_to_bgra, oklch_to_rgb, oklch_to_rgba, rgb_to_oklch, rgba_to_oklch,
+};
 use crate::ClaheGridSize;
 
-pub(crate) fn ycgco444_skip_alpha_to_rgb(
-    y_plane: &[u8],
-    y_stride: u32,
-    cg_plane: &[u8],
-    cg_stride: u32,
-    co_plane: &[u8],
-    co_stride: u32,
-    _: &[u8],
-    _: u32,
-    rgba: &mut [u8],
-    rgba_stride: u32,
-    width: u32,
-    height: u32,
-    range: YuvRange,
-    _: bool,
-) {
-    ycgco444_to_rgb(
-        y_plane,
-        y_stride,
-        cg_plane,
-        cg_stride,
-        co_plane,
-        co_stride,
-        rgba,
-        rgba_stride,
-        width,
-        height,
-        range,
-    );
-}
-
-/// Converts image to YUV, performs CLAHE and reverts back into RGB.
-///
-/// For optimization purposes YUV histogram bins always 256
+/// Converts image to oklch, performs CLAHE and reverts back into RGB
 ///
 /// # Arguments
 ///
 /// * `threshold` - Level of clipping histogram ~[0, 10]
 /// * `grid_size` - Grid for constructing histograms - default is (8,8)
+/// * `bins_count` - Histogram bins, default is 128
 ///
 /// # Panics
 ///
 /// This function panics if the lengths of the planes or the input data are not valid based
 /// on the specified width, height, and strides
-pub fn clahe_yuv_rgb(
+pub fn clahe_oklch_rgb(
     src: &[u8],
     src_stride: u32,
     dst: &mut [u8],
@@ -60,8 +26,9 @@ pub fn clahe_yuv_rgb(
     height: u32,
     threshold: f32,
     grid_size: ClaheGridSize,
+    bins_count: usize,
 ) {
-    clahe_yuv_impl::<3, { AheImplementation::Clahe as u8 }>(
+    clahe_impl_u16_proxy::<3, { AheImplementation::Clahe as u8 }>(
         src,
         src_stride,
         dst,
@@ -70,24 +37,24 @@ pub fn clahe_yuv_rgb(
         height,
         threshold,
         grid_size,
-        rgb_to_ycgco444,
-        ycgco444_skip_alpha_to_rgb,
+        bins_count,
+        rgb_to_oklch,
+        oklch_to_rgb,
     );
 }
 
-/// Converts image to YUV, performs AHE and reverts back into RGB
-///
-/// For optimization purposes YUV histogram bins always 256
+/// Converts image to oklch, performs AHE and reverts back into RGB
 ///
 /// # Arguments
 ///
 /// * `grid_size` - Grid for constructing histograms - default is (8,8)
+/// * `bins_count` - Histogram bins, default is 128
 ///
 /// # Panics
 ///
 /// This function panics if the lengths of the planes or the input data are not valid based
 /// on the specified width, height, and strides
-pub fn ahe_yuv_rgb(
+pub fn ahe_oklch_rgb(
     src: &[u8],
     src_stride: u32,
     dst: &mut [u8],
@@ -95,8 +62,9 @@ pub fn ahe_yuv_rgb(
     width: u32,
     height: u32,
     grid_size: ClaheGridSize,
+    bins_count: usize,
 ) {
-    clahe_yuv_impl::<3, { AheImplementation::Ahe as u8 }>(
+    clahe_impl_u16_proxy::<3, { AheImplementation::Ahe as u8 }>(
         src,
         src_stride,
         dst,
@@ -105,25 +73,25 @@ pub fn ahe_yuv_rgb(
         height,
         0f32,
         grid_size,
-        rgb_to_ycgco444,
-        ycgco444_skip_alpha_to_rgb,
+        bins_count,
+        rgb_to_oklch,
+        oklch_to_rgb,
     );
 }
 
-/// Converts image to YUV, performs CLAHE and reverts back into RGBA
-///
-/// For optimization purposes YUV histogram bins always 256
+/// Converts image to oklch, performs CLAHE and reverts back into RGBA
 ///
 /// # Arguments
 ///
 /// * `threshold` - Level of clipping histogram ~[0, 10]
 /// * `grid_size` - Grid for constructing histograms - default is (8,8)
+/// * `bins_count` - Histogram bins, default is 128
 ///
 /// # Panics
 ///
 /// This function panics if the lengths of the planes or the input data are not valid based
 /// on the specified width, height, and strides
-pub fn clahe_yuv_rgba(
+pub fn clahe_oklch_rgba(
     src: &[u8],
     src_stride: u32,
     dst: &mut [u8],
@@ -132,8 +100,9 @@ pub fn clahe_yuv_rgba(
     height: u32,
     threshold: f32,
     grid_size: ClaheGridSize,
+    bins_count: usize,
 ) {
-    clahe_yuv_impl::<4, { AheImplementation::Clahe as u8 }>(
+    clahe_impl_u16_proxy::<4, { AheImplementation::Clahe as u8 }>(
         src,
         src_stride,
         dst,
@@ -142,24 +111,24 @@ pub fn clahe_yuv_rgba(
         height,
         threshold,
         grid_size,
-        rgba_to_ycgco444,
-        ycgco444_with_alpha_to_rgba,
+        bins_count,
+        rgba_to_oklch,
+        oklch_to_rgba,
     );
 }
 
-/// Converts image to YUV, performs AHE and reverts back into RGB
-///
-/// For optimization purposes YUV histogram bins always 256
+/// Converts image to oklch, performs AHE and reverts back into RGBA
 ///
 /// # Arguments
 ///
 /// * `grid_size` - Grid for constructing histograms - default is (8,8)
+/// * `bins_count` - Histogram bins, default is 128
 ///
 /// # Panics
 ///
 /// This function panics if the lengths of the planes or the input data are not valid based
 /// on the specified width, height, and strides
-pub fn ahe_yuv_rgba(
+pub fn ahe_oklch_rgba(
     src: &[u8],
     src_stride: u32,
     dst: &mut [u8],
@@ -167,8 +136,9 @@ pub fn ahe_yuv_rgba(
     width: u32,
     height: u32,
     grid_size: ClaheGridSize,
+    bins_count: usize,
 ) {
-    clahe_yuv_impl::<4, { AheImplementation::Ahe as u8 }>(
+    clahe_impl_u16_proxy::<4, { AheImplementation::Ahe as u8 }>(
         src,
         src_stride,
         dst,
@@ -177,25 +147,25 @@ pub fn ahe_yuv_rgba(
         height,
         0f32,
         grid_size,
-        rgba_to_ycgco444,
-        ycgco444_with_alpha_to_rgba,
+        bins_count,
+        rgba_to_oklch,
+        oklch_to_rgba,
     );
 }
 
-/// Converts image to YUV, performs CLAHE and reverts back into BGRA
-///
-/// For optimization purposes YUV histogram bins always 256
+/// Converts image to oklch, performs CLAHE and reverts back into BGRA
 ///
 /// # Arguments
 ///
 /// * `threshold` - Level of clipping histogram ~[0, 10]
 /// * `grid_size` - Grid for constructing histograms - default is (8,8)
+/// * `bins_count` - Histogram bins, default is 128
 ///
 /// # Panics
 ///
 /// This function panics if the lengths of the planes or the input data are not valid based
 /// on the specified width, height, and strides
-pub fn clahe_yuv_bgra(
+pub fn clahe_oklch_bgra(
     src: &[u8],
     src_stride: u32,
     dst: &mut [u8],
@@ -204,8 +174,9 @@ pub fn clahe_yuv_bgra(
     height: u32,
     threshold: f32,
     grid_size: ClaheGridSize,
+    bins_count: usize,
 ) {
-    clahe_yuv_impl::<4, { AheImplementation::Clahe as u8 }>(
+    clahe_impl_u16_proxy::<4, { AheImplementation::Clahe as u8 }>(
         src,
         src_stride,
         dst,
@@ -214,24 +185,24 @@ pub fn clahe_yuv_bgra(
         height,
         threshold,
         grid_size,
-        bgra_to_ycgco444,
-        ycgco444_with_alpha_to_bgra,
+        bins_count,
+        bgra_to_oklch,
+        oklch_to_bgra,
     );
 }
 
-/// Converts image to YUV, performs AHE and reverts back into RGB. For optimization purposes YUV histogram bins always 256
-///
-/// For optimization purposes YUV histogram bins always 256
+/// Converts image to oklch, performs AHE and reverts back into RGB
 ///
 /// # Arguments
 ///
 /// * `grid_size` - Grid for constructing histograms - default is (8,8)
+/// * `bins_count` - Histogram bins, default is 128
 ///
 /// # Panics
 ///
 /// This function panics if the lengths of the planes or the input data are not valid based
 /// on the specified width, height, and strides
-pub fn ahe_yuv_bgra(
+pub fn ahe_oklch_bgra(
     src: &[u8],
     src_stride: u32,
     dst: &mut [u8],
@@ -239,8 +210,9 @@ pub fn ahe_yuv_bgra(
     width: u32,
     height: u32,
     grid_size: ClaheGridSize,
+    bins_count: usize,
 ) {
-    clahe_yuv_impl::<4, { AheImplementation::Ahe as u8 }>(
+    clahe_impl_u16_proxy::<4, { AheImplementation::Ahe as u8 }>(
         src,
         src_stride,
         dst,
@@ -249,7 +221,8 @@ pub fn ahe_yuv_bgra(
         height,
         0f32,
         grid_size,
-        bgra_to_ycgco444,
-        ycgco444_with_alpha_to_bgra,
+        bins_count,
+        bgra_to_oklch,
+        oklch_to_bgra,
     );
 }
