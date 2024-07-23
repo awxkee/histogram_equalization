@@ -42,7 +42,7 @@ fn main() {
     let stride = dimensions.0 as usize * channels;
     let mut dst_bytes: Vec<u8> = vec![0; stride * dimensions.1 as usize];
 
-    clahe_oklch_bgra(
+    clahe_oklab_bgra(
         src_bytes,
         stride as u32,
         &mut dst_bytes,
@@ -65,7 +65,7 @@ fn main() {
 
     if channels == 4 {
         image::save_buffer(
-            "converted_oklch.png",
+            "converted_oklab.png",
             &dst_bytes,
             dimensions.0,
             dimensions.1,

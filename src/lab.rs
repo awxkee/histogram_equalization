@@ -82,7 +82,7 @@ pub(crate) fn lab_to_generic_image<const IMAGE: u8>(
 
             let l = unsafe { *source_slice.get_unchecked(px) } as f32 * full_scale;
 
-            let a = (unsafe { *source_slice.get_unchecked(px + 1) } as f32 - 100f32);
+            let a = (unsafe { *source_slice.get_unchecked(px + 1) } as f32 - 100f32) / 100.;
             let b = (unsafe { *source_slice.get_unchecked(px + 2) } as f32 - 100f32) / 100.;
 
             let rgb = Lab::new(l, a, b);
