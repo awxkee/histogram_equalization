@@ -42,10 +42,8 @@ pub(crate) fn equalize_histogram_yuv_impl<const CHANNELS: u8>(
     let bins_count = 256;
 
     let mut y_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
-    y_plane.resize(width as usize * height as usize, 0u8);
 
     let mut u_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
-    u_plane.resize(width as usize * height as usize, 0u8);
 
     let mut v_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
     let mut a_plane = if CHANNELS == 4 {

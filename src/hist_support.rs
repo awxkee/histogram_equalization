@@ -18,10 +18,12 @@ impl From<u8> for AheImplementation {
     }
 }
 
+#[inline]
 pub(crate) fn lerp(a: f32, b: f32, f: f32) -> f32 {
     a * (1f32 - f) + (b * f)
 }
 
+#[inline]
 pub(crate) fn blerp(c00: f32, c10: f32, c01: f32, c11: f32, tx: f32, ty: f32) -> f32 {
     lerp(lerp(c00, c10, tx), lerp(c01, c11, tx), ty)
 }
@@ -93,7 +95,7 @@ pub(crate) fn minmax(slice: &[u64]) -> (u64, u64) {
         }
         i += 1;
     }
-    return (min_value, max_value);
+    (min_value, max_value)
 }
 
 pub(crate) fn make_histogram_region<
