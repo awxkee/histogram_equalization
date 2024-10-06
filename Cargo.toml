@@ -2,17 +2,17 @@ workspace = { members = ["./src/app"] }
 
 [package]
 name = "histogram_equalization"
-version = "0.1.9"
+version = "0.1.10"
 edition = "2021"
 description = "Histogram equalization"
 readme = "README.md"
 keywords = ["histogram"]
 license = "Apache-2.0 OR BSD-3-Clause"
 authors = ["Radzivon Bartoshyk"]
-documentation = "https://github.com/awxkee/hist-equal"
+documentation = "https://github.com/awxkee/histogram_equalization"
 categories = ["multimedia::images", "multimedia::video"]
-homepage = "https://github.com/awxkee/hist-equal"
-repository = "https://github.com/awxkee/hist-equal"
+homepage = "https://github.com/awxkee/histogram_equalization"
+repository = "https://github.com/awxkee/histogram_equalization"
 exclude = ["*.jpg", "assets/*"]
 
 [features]

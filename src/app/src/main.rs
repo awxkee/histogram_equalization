@@ -1,11 +1,7 @@
 use colorutils_rs::rgb_to_rgba;
-use image::io::Reader as ImageReader;
-use image::GenericImageView;
+use image::{GenericImageView, ImageReader};
 
-use histogram_equalization::{
-    clahe_jzazbz_bgra, clahe_lab_bgra, clahe_luv_bgra, clahe_oklab_bgra, clahe_oklch_bgra,
-    ClaheGridSize,
-};
+use histogram_equalization::{clahe_jzazbz_bgra, clahe_lab_bgra, clahe_luv_bgra, clahe_oklab_bgra, clahe_oklch_bgra, clahe_yuv_bgra, ClaheGridSize};
 
 fn main() {
     let img = ImageReader::open("assets/asset_1.jpg")
@@ -42,7 +38,7 @@ fn main() {
     let stride = dimensions.0 as usize * channels;
     let mut dst_bytes: Vec<u8> = vec![0; stride * dimensions.1 as usize];
 
-    clahe_oklab_bgra(
+    clahe_yuv_bgra(
         src_bytes,
         stride as u32,
         &mut dst_bytes,
@@ -51,7 +47,6 @@ fn main() {
         dimensions.1,
         1.2f32,
         ClaheGridSize::new(8, 8),
-        102,
     );
 
     let stride = dimensions.0 * 4;
