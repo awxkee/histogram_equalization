@@ -2,10 +2,10 @@ use colorutils_rs::{rgb_to_rgba, TransferFunction};
 use image::{EncodableLayout, GenericImageView, ImageReader};
 use std::time::Instant;
 
-use histogram_equalization::{clahe_jzazbz_bgra, clahe_jzazbz_rgb, clahe_lab_bgra, clahe_lab_rgb, clahe_luv_bgra, clahe_luv_rgb, clahe_oklab_bgra, clahe_oklab_rgb, clahe_oklab_rgba, clahe_oklch_bgra, clahe_yuv_bgra, clahe_yuv_rgb, ClaheGridSize};
+use histogram_equalization::{ahe_hsl_rgb, ahe_hsv_rgb, ahe_lab_rgb, ahe_yuv_rgb, clahe_jzazbz_bgra, clahe_jzazbz_rgb, clahe_lab_bgra, clahe_lab_rgb, clahe_luv_bgra, clahe_luv_rgb, clahe_oklab_bgra, clahe_oklab_rgb, clahe_oklab_rgba, clahe_oklch_bgra, clahe_yuv_bgra, clahe_yuv_rgb, hist_equal_hsl_rgb, hist_equal_lab_rgb, hist_equal_luv_rgb, ClaheGridSize};
 
 fn main() {
-    let img = ImageReader::open("assets/forest.jpg")
+    let img = ImageReader::open("assets/asset_1.jpg")
         .unwrap()
         .decode()
         .unwrap();
@@ -20,15 +20,14 @@ fn main() {
 
     let start_time = Instant::now();
 
-    clahe_oklab_rgb(
+    ahe_hsv_rgb(
         src_bytes,
         stride as u32,
         &mut dst_bytes,
         stride as u32,
         dimensions.0,
         dimensions.1,
-        1.2f32,
-        ClaheGridSize::new(16, 16),
+        ClaheGridSize::new(8, 8),
         128,
     );
 

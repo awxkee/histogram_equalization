@@ -66,16 +66,31 @@ image::save_buffer(
 
 #### Results example
 
-<p float="left">
+#### Clahe
+
+<div style="display: flex; align-items: center;">
     <div>
         <p>Original</p>
-        <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/forest.jpg?raw=true" width="250" height="170">
+        <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/forest.jpg?raw=true" width="250" height="170"/>
     </div>
-   <div>
+    <div>
         <p>CLAHE</p>
-        <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/oklab_clahe.jpg?raw=true" width="250" height="170">
+        <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/oklab_clahe.jpg?raw=true" width="250" height="170"/>
     </div>
-</p>
+</div>
+
+#### Ahe
+
+<div style="display: flex; align-items: center;">
+    <div>
+        <p>Original</p>
+        <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/ahe_original.jpg?raw=true" width="175" height="250"/>
+    </div>
+    <div>
+        <p>CLAHE</p>
+        <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/ahe_dest.jpg?raw=true" width="175" height="250"/>
+    </div>
+</div>
 
 This project is licensed under either of
 
