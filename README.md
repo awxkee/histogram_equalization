@@ -87,7 +87,7 @@ image::save_buffer(
         <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/ahe_original.jpg?raw=true" width="175" height="250"/>
     </div>
     <div>
-        <p>CLAHE</p>
+        <p>Ahe</p>
         <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/ahe_dest.jpg?raw=true" width="175" height="250"/>
     </div>
 </div>
