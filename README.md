@@ -92,6 +92,8 @@ image::save_buffer(
     </div>
 </div>
 
+<br/>
+
 This project is licensed under either of
 
 - BSD-3-Clause License (see [LICENSE](LICENSE.md))
