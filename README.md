@@ -68,7 +68,7 @@ image::save_buffer(
 
 <p float="left">
     <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/forest.jpg?raw=true" width="250" height="170">
-    <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/oklab_clahe?raw=true" width="250" height="170">
+    <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/oklab_clahe.jp?raw=true" width="250" height="170">
 </p>
 
 This project is licensed under either of
