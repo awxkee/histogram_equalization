@@ -63,3 +63,17 @@ image::save_buffer(
 )
 .unwrap();
 ```
+
+#### Results example
+
+<p float="left">
+    <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/forest.jpg?raw=true" width="250" height="170">
+    <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/oklab_clahe?raw=true" width="250" height="170">
+</p>
+
+This project is licensed under either of
+
+- BSD-3-Clause License (see [LICENSE](LICENSE.md))
+- Apache License, Version 2.0 (see [LICENSE](LICENSE-APACHE.md))
+
+at your option.

@@ -2,6 +2,8 @@ use crate::hist_support::{
     blerp, cdf, clip_hist_clahe, make_histogram_region, minmax, AheImplementation,
 };
 use crate::{ClaheGridSize, ImageHistogram};
+use rayon::iter::{IndexedParallelIterator, ParallelIterator};
+use rayon::prelude::ParallelSliceMut;
 use yuvutils_rs::YuvRange;
 
 #[allow(dead_code)]
@@ -157,49 +159,43 @@ pub(crate) fn clahe_yuv_impl<const CHANNELS: usize, const IMPLEMENTATION: u8>(
         histograms.push(regions_hist);
     }
 
-    let mut yuv_offset = 0usize;
-
     let max_bins = bins_count - 1;
 
-    for y in 0usize..height as usize {
-        for x in 0usize..width as usize {
-            let c_x_f =
-                (x as f32 - horizontal_tile_size as f32 / 2f32) / horizontal_tile_size as f32;
-            let r_y_f = (y as f32 - vertical_tile_size as f32 / 2f32) / vertical_tile_size as f32;
+    y_plane
+        .par_chunks_exact_mut(width as usize)
+        .enumerate()
+        .for_each(|(y, y_plane)| {
+            for (x, y_data) in y_plane.iter_mut().enumerate() {
+                let c_x_f =
+                    (x as f32 - horizontal_tile_size as f32 / 2f32) / horizontal_tile_size as f32;
+                let r_y_f =
+                    (y as f32 - vertical_tile_size as f32 / 2f32) / vertical_tile_size as f32;
 
-            let x1 = (x as f32 - ((c_x_f as i64) as f32 + 0.5f32) * horizontal_tile_size as f32)
-                / horizontal_tile_size as f32;
-            let y1 = (y as f32 - ((r_y_f as i64) as f32 + 0.5f32) * vertical_tile_size as f32)
-                / vertical_tile_size as f32;
+                let x1 = (x as f32
+                    - ((c_x_f as i64) as f32 + 0.5f32) * horizontal_tile_size as f32)
+                    / horizontal_tile_size as f32;
+                let y1 = (y as f32 - ((r_y_f as i64) as f32 + 0.5f32) * vertical_tile_size as f32)
+                    / vertical_tile_size as f32;
 
-            let px = x;
+                let value = (*y_data).min(max_bins as u8).max(0u8) as usize;
 
-            let value = unsafe { *y_plane.get_unchecked(yuv_offset + px + CHANNEL_POSITION) }
-                .min(max_bins as u8)
-                .max(0u8) as usize;
+                let r_y = r_y_f.max(0f32) as i64;
+                let c_x = c_x_f.max(0f32) as i64;
 
-            let r_y = r_y_f.max(0f32) as i64;
-            let c_x = c_x_f.max(0f32) as i64;
-
-            let r = (r_y as usize).min(tiles_vertical as usize - 1usize);
-            let c = (c_x as usize).min(tiles_horizontal as usize - 1usize);
-            let bin1 = histograms[r][c].bins[value] as f32;
-            let bin2 =
-                histograms[r][(c + 1).min(tiles_horizontal as usize - 1usize)].bins[value] as f32;
-            let bin3 =
-                histograms[(r + 1).min(tiles_vertical as usize - 1usize)][c].bins[value] as f32;
-            let bin4 = histograms[(r + 1).min(tiles_vertical as usize - 1usize)]
-                [(c + 1).min(tiles_horizontal as usize - 1usize)]
-            .bins[value] as f32;
-            let interpolated = blerp(bin1, bin2, bin3, bin4, x1, y1);
-            unsafe {
-                *y_plane.get_unchecked_mut(yuv_offset + px + CHANNEL_POSITION) =
-                    interpolated.min(max_bins as f32).max(0f32) as u8;
+                let r = (r_y as usize).min(tiles_vertical as usize - 1usize);
+                let c = (c_x as usize).min(tiles_horizontal as usize - 1usize);
+                let bin1 = histograms[r][c].bins[value] as f32;
+                let bin2 = histograms[r][(c + 1).min(tiles_horizontal as usize - 1usize)].bins
+                    [value] as f32;
+                let bin3 =
+                    histograms[(r + 1).min(tiles_vertical as usize - 1usize)][c].bins[value] as f32;
+                let bin4 = histograms[(r + 1).min(tiles_vertical as usize - 1usize)]
+                    [(c + 1).min(tiles_horizontal as usize - 1usize)]
+                .bins[value] as f32;
+                let interpolated = blerp(bin1, bin2, bin3, bin4, x1, y1);
+                *y_data = interpolated.min(max_bins as f32).max(0f32) as u8;
             }
-        }
-
-        yuv_offset += width as usize;
-    }
+        });
 
     structuring(
         &y_plane,

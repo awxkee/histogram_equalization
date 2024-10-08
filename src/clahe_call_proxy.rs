@@ -2,6 +2,8 @@ use crate::hist_support::{
     blerp, cdf, clip_hist_clahe, make_histogram_region, minmax, AheImplementation, ClaheGridSize,
     ImageHistogram,
 };
+use rayon::iter::{IndexedParallelIterator, ParallelIterator};
+use rayon::prelude::ParallelSliceMut;
 
 #[allow(dead_code)]
 pub(crate) fn clahe_impl_u16_proxy<const CHANNELS: usize, const IMPLEMENTATION: u8>(
@@ -32,7 +34,7 @@ pub(crate) fn clahe_impl_u16_proxy<const CHANNELS: usize, const IMPLEMENTATION: 
     let mut hsv_image: Vec<u16> = vec![0u16; width as usize * height as usize];
     let hsv_stride = width as usize;
 
-    let mut color_planes: Vec<f32> = vec![0.; width as usize * height as usize * CHANNELS];
+    let mut color_planes: Vec<f32> = vec![0.; width as usize * height as usize * (CHANNELS - 1)];
 
     destructuring(
         src,
@@ -112,49 +114,58 @@ pub(crate) fn clahe_impl_u16_proxy<const CHANNELS: usize, const IMPLEMENTATION: 
         histograms.push(regions_hist);
     }
 
-    let mut hsv_offset = 0usize;
-
     let max_bins = bins_count - 1;
 
-    for y in 0usize..height as usize {
-        for x in 0usize..width as usize {
-            let c_x_f =
-                (x as f32 - horizontal_tile_size as f32 / 2f32) / horizontal_tile_size as f32;
-            let r_y_f = (y as f32 - vertical_tile_size as f32 / 2f32) / vertical_tile_size as f32;
+    hsv_image
+        .par_chunks_exact_mut(hsv_stride)
+        .enumerate()
+        .for_each(|(y, hsv_image)| {
+            for (x, hsv) in hsv_image.iter_mut().enumerate() {
+                let c_x_f =
+                    (x as f32 - horizontal_tile_size as f32 / 2f32) / horizontal_tile_size as f32;
+                let r_y_f =
+                    (y as f32 - vertical_tile_size as f32 / 2f32) / vertical_tile_size as f32;
 
-            let x1 = (x as f32 - ((c_x_f as i64) as f32 + 0.5f32) * horizontal_tile_size as f32)
-                / horizontal_tile_size as f32;
-            let y1 = (y as f32 - ((r_y_f as i64) as f32 + 0.5f32) * vertical_tile_size as f32)
-                / vertical_tile_size as f32;
+                let x1 = (x as f32
+                    - ((c_x_f as i64) as f32 + 0.5f32) * horizontal_tile_size as f32)
+                    / horizontal_tile_size as f32;
+                let y1 = (y as f32 - ((r_y_f as i64) as f32 + 0.5f32) * vertical_tile_size as f32)
+                    / vertical_tile_size as f32;
 
-            let px = x * 1;
+                let value = (*hsv).min(max_bins as u16).max(0u16) as usize;
 
-            let value = unsafe { *hsv_image.get_unchecked(hsv_offset + px + 0) }
-                .min(max_bins as u16)
-                .max(0u16) as usize;
+                let r_y = r_y_f.max(0f32) as i64;
+                let c_x = c_x_f.max(0f32) as i64;
 
-            let r_y = r_y_f.max(0f32) as i64;
-            let c_x = c_x_f.max(0f32) as i64;
+                let r = (r_y as usize).min(tiles_vertical as usize - 1usize);
+                let c = (c_x as usize).min(tiles_horizontal as usize - 1usize);
+                unsafe {
+                    let bin1 = *histograms
+                        .get_unchecked(r)
+                        .get_unchecked(c)
+                        .bins
+                        .get_unchecked(value) as f32;
+                    let bin2 = *histograms
+                        .get_unchecked(r)
+                        .get_unchecked((c + 1).min(tiles_horizontal as usize - 1usize))
+                        .bins
+                        .get_unchecked(value) as f32;
+                    let bin3 = *histograms
+                        .get_unchecked((r + 1).min(tiles_vertical as usize - 1usize))
+                        .get_unchecked(c)
+                        .bins
+                        .get_unchecked(value) as f32;
+                    let bin4 = *histograms
+                        .get_unchecked((r + 1).min(tiles_vertical as usize - 1usize))
+                        .get_unchecked((c + 1).min(tiles_horizontal as usize - 1usize))
+                        .bins
+                        .get_unchecked(value) as f32;
+                    let interpolated = blerp(bin1, bin2, bin3, bin4, x1, y1);
 
-            let r = (r_y as usize).min(tiles_vertical as usize - 1usize);
-            let c = (c_x as usize).min(tiles_horizontal as usize - 1usize);
-            let bin1 = histograms[r][c].bins[value] as f32;
-            let bin2 =
-                histograms[r][(c + 1).min(tiles_horizontal as usize - 1usize)].bins[value] as f32;
-            let bin3 =
-                histograms[(r + 1).min(tiles_vertical as usize - 1usize)][c].bins[value] as f32;
-            let bin4 = histograms[(r + 1).min(tiles_vertical as usize - 1usize)]
-                [(c + 1).min(tiles_horizontal as usize - 1usize)]
-            .bins[value] as f32;
-            let interpolated = blerp(bin1, bin2, bin3, bin4, x1, y1);
-            unsafe {
-                *hsv_image.get_unchecked_mut(hsv_offset + px + 0) =
-                    interpolated.min(max_bins as f32).max(0f32) as u16;
+                    *hsv = interpolated.min(max_bins as f32).max(0f32) as u16;
+                }
             }
-        }
-
-        hsv_offset += hsv_stride;
-    }
+        });
 
     structuring(
         &hsv_image,

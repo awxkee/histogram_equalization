@@ -1,8 +1,9 @@
 use std::slice;
 
-use colorutils_rs::{Oklab, Rgb, TransferFunction};
-
 use crate::image_configuration::ImageConfiguration;
+use colorutils_rs::{Oklab, Rgb, TransferFunction};
+use rayon::iter::{IndexedParallelIterator, ParallelIterator};
+use rayon::prelude::{ParallelSlice, ParallelSliceMut};
 
 #[inline]
 pub(crate) fn generic_image_to_oklab<const IMAGE: u8>(
@@ -20,50 +21,52 @@ pub(crate) fn generic_image_to_oklab<const IMAGE: u8>(
 
     let full_scale = scale;
 
-    let mut src_offset = 0usize;
-    let mut oklab_offset = 0usize;
-    let mut color_planes_offset = 0usize;
     let color_planes_stride = if image_configuration.has_alpha() {
         width as usize * 3usize
     } else {
         width as usize * 2usize
     };
-    for _ in 0..height as usize {
-        let dst_ptr = unsafe { (dst.as_mut_ptr() as *mut u8).add(oklab_offset) as *mut u16 };
-        let new_slice = unsafe { slice::from_raw_parts_mut(dst_ptr, width as usize * channels) };
-        for x in 0..width as usize {
-            let px = x * channels;
-            let cx = x * 3;
 
-            let rgb = Rgb::<u8>::new(
-                unsafe {
-                    *src.get_unchecked(src_offset + px + image_configuration.get_r_channel_offset())
-                },
-                unsafe {
-                    *src.get_unchecked(src_offset + px + image_configuration.get_g_channel_offset())
-                },
-                unsafe {
-                    *src.get_unchecked(src_offset + px + image_configuration.get_b_channel_offset())
-                },
-            );
-            let oklab = Oklab::from_rgb(rgb, TransferFunction::Srgb);
-            unsafe {
-                *new_slice.get_unchecked_mut(x) = (oklab.l * full_scale).round().min(scale) as u16;
+    let color_planes_channels = if image_configuration.has_alpha() {
+        3usize
+    } else {
+        2usize
+    };
+
+    let dst_slice_safe_align = unsafe {
+        slice::from_raw_parts_mut(
+            dst.as_mut_ptr() as *mut u8,
+            dst_stride as usize * height as usize,
+        )
+    };
+
+    dst_slice_safe_align
+        .par_chunks_exact_mut(dst_stride as usize)
+        .zip(color_planes.par_chunks_exact_mut(color_planes_stride))
+        .zip(src.par_chunks_exact(src_stride as usize))
+        .for_each(|((dst, color), src)| unsafe {
+            let dst_ptr = dst.as_mut_ptr() as *mut u16;
+            for x in 0..width as usize {
+                let px = x * channels;
+                let cx = x * color_planes_channels;
+
+                let rgb = Rgb::<u8>::new(
+                    *src.get_unchecked(px + image_configuration.get_r_channel_offset()),
+                    *src.get_unchecked(px + image_configuration.get_g_channel_offset()),
+                    *src.get_unchecked(px + image_configuration.get_b_channel_offset()),
+                );
+                let oklab = Oklab::from_rgb(rgb, TransferFunction::Srgb);
+                let value = (oklab.l * full_scale).round().min(scale) as u16;
+                dst_ptr.add(x).write_unaligned(value);
                 // Just for storing in u16 adding 500 to subtract 500 after to keep values in positive range
-                *color_planes.get_unchecked_mut(color_planes_offset + cx + 0) = oklab.a;
-                *color_planes.get_unchecked_mut(color_planes_offset + cx + 1) = oklab.b;
+                *color.get_unchecked_mut(cx + 0) = oklab.a;
+                *color.get_unchecked_mut(cx + 1) = oklab.b;
                 if image_configuration.has_alpha() {
-                    let a = *src.get_unchecked(
-                        src_offset + px + image_configuration.get_a_channel_offset(),
-                    );
-                    *color_planes.get_unchecked_mut(color_planes_offset + cx + 2) = a as f32;
+                    let a = *src.get_unchecked(px + image_configuration.get_a_channel_offset());
+                    *color.get_unchecked_mut(cx + 2) = a as f32;
                 }
             }
-        }
-        src_offset += src_stride as usize;
-        oklab_offset += dst_stride as usize;
-        color_planes_offset += color_planes_stride;
-    }
+        });
 }
 
 #[inline]
@@ -88,45 +91,45 @@ pub(crate) fn oklab_to_generic_image<const IMAGE: u8>(
         width as usize * 2usize
     };
 
-    let mut src_offset = 0usize;
-    let mut src_color_planes_offset = 0usize;
-    let mut dst_offset = 0usize;
-    for _ in 0..height as usize {
-        let src_ptr = unsafe { (src.as_ptr() as *const u8).add(src_offset) as *const u16 };
-        let source_slice = unsafe { slice::from_raw_parts(src_ptr, width as usize * channels) };
-        for x in 0..width as usize {
-            let px = x * channels;
-            let cx = x * 3;
+    let color_planes_channels = if image_configuration.has_alpha() {
+        3usize
+    } else {
+        2usize
+    };
 
-            let l = unsafe { *source_slice.get_unchecked(x) } as f32 * full_scale;
+    let src_slice_safe_align = unsafe {
+        slice::from_raw_parts(
+            src.as_ptr() as *const u8,
+            dst_stride as usize * height as usize,
+        )
+    };
 
-            let a = unsafe { *color_planes.get_unchecked(src_color_planes_offset + cx + 0) };
-            let b = unsafe { *color_planes.get_unchecked(src_color_planes_offset + cx + 1) };
+    dst.par_chunks_exact_mut(dst_stride as usize)
+        .zip(color_planes.par_chunks_exact(color_planes_stride))
+        .zip(src_slice_safe_align.par_chunks_exact(src_stride as usize))
+        .for_each(|((dst, color), src)| unsafe {
+            let src_ptr = src.as_ptr() as *const u16;
+            for x in 0..width as usize {
+                let px = x * channels;
+                let cx = x * color_planes_channels;
 
-            let rgb = Oklab::new(l, a, b);
-            let rgb = rgb.to_rgb(TransferFunction::Srgb);
-            unsafe {
-                *dst.get_unchecked_mut(
-                    dst_offset + px + image_configuration.get_r_channel_offset(),
-                ) = rgb.r;
-                *dst.get_unchecked_mut(
-                    dst_offset + px + image_configuration.get_g_channel_offset(),
-                ) = rgb.g;
-                *dst.get_unchecked_mut(
-                    dst_offset + px + image_configuration.get_b_channel_offset(),
-                ) = rgb.b;
+                let l = src_ptr.add(x).read_unaligned() as f32 * full_scale;
+
+                let a = *color.get_unchecked(cx + 0);
+                let b = *color.get_unchecked(cx + 1);
+
+                let rgb = Oklab::new(l, a, b);
+                let rgb = rgb.to_rgb(TransferFunction::Srgb);
+                *dst.get_unchecked_mut(px + image_configuration.get_r_channel_offset()) = rgb.r;
+                *dst.get_unchecked_mut(px + image_configuration.get_g_channel_offset()) = rgb.g;
+                *dst.get_unchecked_mut(px + image_configuration.get_b_channel_offset()) = rgb.b;
                 if image_configuration.has_alpha() {
-                    let a = *color_planes.get_unchecked(src_color_planes_offset + cx + 2);
-                    *dst.get_unchecked_mut(
-                        dst_offset + px + image_configuration.get_a_channel_offset(),
-                    ) = a as u8;
+                    let a = *color.get_unchecked(cx + 2);
+                    *dst.get_unchecked_mut(px + image_configuration.get_a_channel_offset()) =
+                        a as u8;
                 }
             }
-        }
-        src_offset += src_stride as usize;
-        dst_offset += dst_stride as usize;
-        src_color_planes_offset += color_planes_stride;
-    }
+        });
 }
 
 pub(crate) fn rgb_to_oklab(

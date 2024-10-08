@@ -2,12 +2,12 @@ workspace = { members = ["./src/app"] }
 
 [package]
 name = "histogram_equalization"
-version = "0.1.10"
+version = "0.2.0"
 edition = "2021"
 description = "Histogram equalization"
 readme = "README.md"
 keywords = ["histogram"]
-license = "Apache-2.0 OR BSD-3-Clause"
+license = "BSD-3-Clause OR Apache-2.0"
 authors = ["Radzivon Bartoshyk"]
 documentation = "https://github.com/awxkee/histogram_equalization"
 categories = ["multimedia::images", "multimedia::video"]
@@ -19,6 +19,7 @@ exclude = ["*.jpg", "assets/*"]
 nightly_avx512 = ["yuvutils-rs/nightly_avx512"]
 
 [dependencies]
-colorutils-rs = "0.5.4"
+colorutils-rs = "0.6.0"
 num-traits = "0.2.19"
-yuvutils-rs = "0.4.2"
+rayon = "1.10.0"
+yuvutils-rs = "0.4.7"

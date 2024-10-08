@@ -47,11 +47,10 @@ pub struct ImageHistogram {
 
 pub(crate) fn cdf(arr: &mut [u64]) {
     let mut sum: u64 = 0u64;
-    for i in 0..arr.len() {
-        sum += unsafe { *arr.get_unchecked(i) };
-        unsafe {
-            *arr.get_unchecked_mut(i) = sum;
-        }
+
+    for value in arr.iter_mut() {
+        sum += *value;
+        *value = sum;
     }
 }
 
