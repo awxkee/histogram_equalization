@@ -67,8 +67,14 @@ image::save_buffer(
 #### Results example
 
 <p float="left">
-    <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/forest.jpg?raw=true" width="250" height="170">
-    <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/oklab_clahe.jp?raw=true" width="250" height="170">
+    <div>
+        <p>Original</p>
+        <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/forest.jpg?raw=true" width="250" height="170">
+    </div>
+   <div>
+        <p>CLAHE</p>
+        <img src="https://github.com/awxkee/histogram_equalization/blob/master/assets/oklab_clahe.jpg?raw=true" width="250" height="170">
+    </div>
 </p>
 
 This project is licensed under either of
