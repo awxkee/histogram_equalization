@@ -1,6 +1,7 @@
 use yuvutils_rs::{
     bgra_to_ycgco444, rgb_to_ycgco444, rgba_to_ycgco444, ycgco444_to_rgb,
-    ycgco444_with_alpha_to_bgra, ycgco444_with_alpha_to_rgba, YuvRange,
+    ycgco444_with_alpha_to_bgra, ycgco444_with_alpha_to_rgba, YuvError, YuvPlanarImage,
+    YuvPlanarImageWithAlpha, YuvRange,
 };
 
 use crate::clahe_yuv_impl::clahe_yuv_impl;
@@ -8,34 +9,23 @@ use crate::hist_support::AheImplementation;
 use crate::ClaheGridSize;
 
 pub(crate) fn ycgco444_skip_alpha_to_rgb(
-    y_plane: &[u8],
-    y_stride: u32,
-    cg_plane: &[u8],
-    cg_stride: u32,
-    co_plane: &[u8],
-    co_stride: u32,
-    _: &[u8],
-    _: u32,
+    image_with_alpha: &YuvPlanarImageWithAlpha<u8>,
     rgba: &mut [u8],
     rgba_stride: u32,
-    width: u32,
-    height: u32,
     range: YuvRange,
     _: bool,
-) {
-    ycgco444_to_rgb(
-        y_plane,
-        y_stride,
-        cg_plane,
-        cg_stride,
-        co_plane,
-        co_stride,
-        rgba,
-        rgba_stride,
-        width,
-        height,
-        range,
-    );
+) -> Result<(), YuvError> {
+    let image = YuvPlanarImage {
+        y_plane: image_with_alpha.y_plane,
+        y_stride: image_with_alpha.y_stride,
+        u_plane: image_with_alpha.u_plane,
+        u_stride: image_with_alpha.u_stride,
+        v_plane: image_with_alpha.v_plane,
+        v_stride: image_with_alpha.v_stride,
+        width: image_with_alpha.width,
+        height: image_with_alpha.height,
+    };
+    ycgco444_to_rgb(&image, rgba, rgba_stride, range)
 }
 
 /// Converts image to YUV, performs CLAHE and reverts back into RGB.

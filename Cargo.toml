@@ -2,7 +2,7 @@ workspace = { members = ["./src/app"] }
 
 [package]
 name = "histogram_equalization"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 description = "Histogram equalization"
 readme = "README.md"
@@ -22,4 +22,4 @@ nightly_avx512 = ["yuvutils-rs/nightly_avx512"]
 colorutils-rs = "0.7.0"
 num-traits = "0.2.19"
 rayon = "1.10.0"
-yuvutils-rs = "0.4.7"
+yuvutils-rs = "0.5.0"

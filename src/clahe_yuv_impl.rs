@@ -4,7 +4,7 @@ use crate::hist_support::{
 use crate::{ClaheGridSize, ImageHistogram};
 use rayon::iter::{IndexedParallelIterator, ParallelIterator};
 use rayon::prelude::ParallelSliceMut;
-use yuvutils_rs::YuvRange;
+use yuvutils_rs::{BufferStoreMut, YuvError, YuvPlanarImageMut, YuvPlanarImageWithAlpha, YuvRange};
 
 #[allow(dead_code)]
 pub(crate) fn clahe_yuv_impl<const CHANNELS: usize, const IMPLEMENTATION: u8>(
@@ -16,35 +16,14 @@ pub(crate) fn clahe_yuv_impl<const CHANNELS: usize, const IMPLEMENTATION: u8>(
     height: u32,
     threshold: f32,
     clahe_grid_size: ClaheGridSize,
-    destructuring: fn(
-        &mut [u8],
-        u32,
-        &mut [u8],
-        u32,
-        &mut [u8],
-        u32,
-        &[u8],
-        u32,
-        u32,
-        u32,
-        YuvRange,
-    ),
+    destructuring: fn(&mut YuvPlanarImageMut<u8>, &[u8], u32, YuvRange) -> Result<(), YuvError>,
     structuring: fn(
-        &[u8],
-        u32,
-        &[u8],
-        u32,
-        &[u8],
-        u32,
-        &[u8],
-        u32,
+        &YuvPlanarImageWithAlpha<u8>,
         &mut [u8],
-        u32,
-        u32,
         u32,
         YuvRange,
         bool,
-    ),
+    ) -> Result<(), YuvError>,
 ) {
     const CHANNEL_POSITION: usize = 0;
     if clahe_grid_size.w == 0 || clahe_grid_size.h == 0 {
@@ -53,45 +32,33 @@ pub(crate) fn clahe_yuv_impl<const CHANNELS: usize, const IMPLEMENTATION: u8>(
     let implementation: AheImplementation = IMPLEMENTATION.into();
     let bins_count = 256;
 
-    let mut y_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
-    y_plane.resize(width as usize * height as usize, 0u8);
-
-    let mut u_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
-    u_plane.resize(width as usize * height as usize, 0u8);
-
-    let mut v_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
     let mut a_plane = if CHANNELS == 4 {
         vec![0u8; width as usize * height as usize]
     } else {
         Vec::new()
     };
 
-    destructuring(
-        &mut y_plane,
-        width,
-        &mut u_plane,
-        width,
-        &mut v_plane,
-        width,
-        src,
-        src_stride,
+    let mut planar_image_mut = YuvPlanarImageMut {
+        y_plane: BufferStoreMut::Owned(vec![0u8; width as usize * height as usize]),
+        y_stride: width,
+        u_plane: BufferStoreMut::Owned(vec![0u8; width as usize * height as usize]),
+        u_stride: width,
+        v_plane: BufferStoreMut::Owned(vec![0u8; width as usize * height as usize]),
+        v_stride: width,
         width,
         height,
-        YuvRange::Full,
-    );
+    };
+
+    destructuring(&mut planar_image_mut, src, src_stride, YuvRange::Full).unwrap();
     if CHANNELS == 4 {
-        let mut a_shift = 0usize;
-        let mut y_shift = 0usize;
-        for _ in 0usize..height as usize {
-            for x in 0usize..width as usize {
-                unsafe {
-                    *a_plane.get_unchecked_mut(a_shift + x) =
-                        *src.get_unchecked(y_shift + x * 4 + 3);
+        a_plane
+            .chunks_exact_mut(width as usize)
+            .zip(src.chunks_exact(src_stride as usize))
+            .for_each(|(a_row, src)| {
+                for (dst, src) in a_row.iter_mut().zip(src.chunks_exact(4)) {
+                    *dst = src[3];
                 }
-            }
-            y_shift += src_stride as usize;
-            a_shift += width as usize;
-        }
+            });
     }
 
     let mut histograms: Vec<Vec<ImageHistogram>> = vec![];
@@ -117,7 +84,13 @@ pub(crate) fn clahe_yuv_impl<const CHANNELS: usize, const IMPLEMENTATION: u8>(
             }
 
             let mut region_hist = make_histogram_region::<CHANNEL_POSITION, 1, u8>(
-                &y_plane, width, start_x, end_x, start_y, end_y, bins_count,
+                planar_image_mut.y_plane.borrow(),
+                width,
+                start_x,
+                end_x,
+                start_y,
+                end_y,
+                bins_count,
             );
 
             let mut bins = region_hist.bins;
@@ -161,7 +134,9 @@ pub(crate) fn clahe_yuv_impl<const CHANNELS: usize, const IMPLEMENTATION: u8>(
 
     let max_bins = bins_count - 1;
 
-    y_plane
+    planar_image_mut
+        .y_plane
+        .borrow_mut()
         .par_chunks_exact_mut(width as usize)
         .enumerate()
         .for_each(|(y, y_plane)| {
@@ -197,20 +172,18 @@ pub(crate) fn clahe_yuv_impl<const CHANNELS: usize, const IMPLEMENTATION: u8>(
             }
         });
 
-    structuring(
-        &y_plane,
-        width,
-        &u_plane,
-        width,
-        &v_plane,
-        width,
-        &a_plane,
-        width,
-        dst,
-        dst_stride,
+    let planar_image = YuvPlanarImageWithAlpha {
+        y_plane: planar_image_mut.y_plane.borrow(),
+        y_stride: width,
+        u_plane: planar_image_mut.u_plane.borrow(),
+        u_stride: width,
+        v_plane: planar_image_mut.v_plane.borrow(),
+        v_stride: width,
+        a_plane: &a_plane,
+        a_stride: width,
         width,
         height,
-        YuvRange::Full,
-        false,
-    );
+    };
+
+    structuring(&planar_image, dst, dst_stride, YuvRange::Full, false).unwrap();
 }

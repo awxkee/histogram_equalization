@@ -1,5 +1,5 @@
 use crate::hist_support::{cdf, make_histogram_region, minmax};
-use yuvutils_rs::YuvRange;
+use yuvutils_rs::{BufferStoreMut, YuvError, YuvPlanarImageMut, YuvPlanarImageWithAlpha, YuvRange};
 
 #[allow(dead_code)]
 pub(crate) fn equalize_histogram_yuv_impl<const CHANNELS: u8>(
@@ -9,62 +9,41 @@ pub(crate) fn equalize_histogram_yuv_impl<const CHANNELS: u8>(
     dst_stride: u32,
     width: u32,
     height: u32,
-    destructuring: fn(
-        &mut [u8],
-        u32,
-        &mut [u8],
-        u32,
-        &mut [u8],
-        u32,
-        &[u8],
-        u32,
-        u32,
-        u32,
-        YuvRange,
-    ),
+    destructuring: fn(&mut YuvPlanarImageMut<u8>, &[u8], u32, YuvRange) -> Result<(), YuvError>,
     structuring: fn(
-        &[u8],
-        u32,
-        &[u8],
-        u32,
-        &[u8],
-        u32,
-        &[u8],
-        u32,
+        &YuvPlanarImageWithAlpha<u8>,
         &mut [u8],
-        u32,
-        u32,
         u32,
         YuvRange,
         bool,
-    ),
+    ) -> Result<(), YuvError>,
 ) {
     let bins_count = 256;
 
-    let mut y_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
+    let y_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
 
-    let mut u_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
+    let u_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
 
-    let mut v_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
+    let v_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
     let mut a_plane = if CHANNELS == 4 {
         vec![0u8; width as usize * height as usize]
     } else {
         Vec::new()
     };
 
-    destructuring(
-        &mut y_plane,
-        width,
-        &mut u_plane,
-        width,
-        &mut v_plane,
-        width,
-        src,
-        src_stride,
+    let mut planar_image_mut = YuvPlanarImageMut {
+        y_plane: BufferStoreMut::Owned(y_plane),
+        y_stride: width,
+        u_plane: BufferStoreMut::Owned(u_plane),
+        u_stride: width,
+        v_plane: BufferStoreMut::Owned(v_plane),
+        v_stride: width,
         width,
         height,
-        YuvRange::Full,
-    );
+    };
+
+    destructuring(&mut planar_image_mut, src, src_stride, YuvRange::Full).unwrap();
+
     if CHANNELS == 4 {
         let mut a_shift = 0usize;
         let mut y_shift = 0usize;
@@ -80,8 +59,15 @@ pub(crate) fn equalize_histogram_yuv_impl<const CHANNELS: u8>(
         }
     }
 
-    let histogram =
-        make_histogram_region::<0, 1, u8>(&y_plane, width, 0, width, 0, height, bins_count);
+    let histogram = make_histogram_region::<0, 1, u8>(
+        planar_image_mut.y_plane.borrow(),
+        width,
+        0,
+        width,
+        0,
+        height,
+        bins_count,
+    );
     let mut bins = histogram.bins;
 
     cdf(&mut bins);
@@ -103,32 +89,30 @@ pub(crate) fn equalize_histogram_yuv_impl<const CHANNELS: u8>(
         }
     }
 
-    let mut y_shift = 0usize;
-    for _ in 0usize..height as usize {
-        for x in 0usize..width as usize {
-            unsafe {
-                let value = *y_plane.get_unchecked(y_shift + x) as usize;
-                let bin_value = *bins.get_unchecked(value);
-                *y_plane.get_unchecked_mut(y_shift + x) = bin_value as u8;
+    planar_image_mut
+        .y_plane
+        .borrow_mut()
+        .chunks_exact_mut(width as usize)
+        .for_each(|row| {
+            for dst in row.iter_mut() {
+                let value = *dst;
+                let bin_value = unsafe { *bins.get_unchecked(value as usize) };
+                *dst = bin_value as u8;
             }
-        }
-        y_shift += width as usize;
-    }
+        });
 
-    structuring(
-        &y_plane,
-        width,
-        &u_plane,
-        width,
-        &v_plane,
-        width,
-        &a_plane,
-        width,
-        dst,
-        dst_stride,
+    let planar_image = YuvPlanarImageWithAlpha {
+        y_plane: planar_image_mut.y_plane.borrow(),
+        y_stride: width,
+        u_plane: planar_image_mut.u_plane.borrow(),
+        u_stride: width,
+        v_plane: planar_image_mut.v_plane.borrow(),
+        v_stride: width,
+        a_plane: &a_plane,
+        a_stride: width,
         width,
         height,
-        YuvRange::Full,
-        false,
-    );
+    };
+
+    structuring(&planar_image, dst, dst_stride, YuvRange::Full, false).unwrap();
 }
