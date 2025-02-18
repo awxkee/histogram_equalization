@@ -1,7 +1,7 @@
 use yuvutils_rs::{
-    bgra_to_ycgco444, rgb_to_ycgco444, rgba_to_ycgco444, ycgco444_to_rgb,
-    ycgco444_with_alpha_to_bgra, ycgco444_with_alpha_to_rgba, YuvError, YuvPlanarImage,
-    YuvPlanarImageWithAlpha, YuvRange,
+    bgra_to_ycgco444, rgb_to_ycgco444, rgba_to_ycgco444, ycgco444_alpha_to_bgra,
+    ycgco444_alpha_to_rgba, ycgco444_to_rgb, YuvError, YuvPlanarImage, YuvPlanarImageWithAlpha,
+    YuvRange,
 };
 
 use crate::clahe_yuv_impl::clahe_yuv_impl;
@@ -13,7 +13,6 @@ pub(crate) fn ycgco444_skip_alpha_to_rgb(
     rgba: &mut [u8],
     rgba_stride: u32,
     range: YuvRange,
-    _: bool,
 ) -> Result<(), YuvError> {
     let image = YuvPlanarImage {
         y_plane: image_with_alpha.y_plane,
@@ -133,7 +132,7 @@ pub fn clahe_yuv_rgba(
         threshold,
         grid_size,
         rgba_to_ycgco444,
-        ycgco444_with_alpha_to_rgba,
+        ycgco444_alpha_to_rgba,
     );
 }
 
@@ -168,7 +167,7 @@ pub fn ahe_yuv_rgba(
         0f32,
         grid_size,
         rgba_to_ycgco444,
-        ycgco444_with_alpha_to_rgba,
+        ycgco444_alpha_to_rgba,
     );
 }
 
@@ -205,7 +204,7 @@ pub fn clahe_yuv_bgra(
         threshold,
         grid_size,
         bgra_to_ycgco444,
-        ycgco444_with_alpha_to_bgra,
+        ycgco444_alpha_to_bgra,
     );
 }
 
@@ -240,6 +239,6 @@ pub fn ahe_yuv_bgra(
         0f32,
         grid_size,
         bgra_to_ycgco444,
-        ycgco444_with_alpha_to_bgra,
+        ycgco444_alpha_to_bgra,
     );
 }

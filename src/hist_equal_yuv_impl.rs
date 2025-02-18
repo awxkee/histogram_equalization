@@ -10,13 +10,7 @@ pub(crate) fn equalize_histogram_yuv_impl<const CHANNELS: u8>(
     width: u32,
     height: u32,
     destructuring: fn(&mut YuvPlanarImageMut<u8>, &[u8], u32, YuvRange) -> Result<(), YuvError>,
-    structuring: fn(
-        &YuvPlanarImageWithAlpha<u8>,
-        &mut [u8],
-        u32,
-        YuvRange,
-        bool,
-    ) -> Result<(), YuvError>,
+    structuring: fn(&YuvPlanarImageWithAlpha<u8>, &mut [u8], u32, YuvRange) -> Result<(), YuvError>,
 ) {
     let bins_count = 256;
 
@@ -114,5 +108,5 @@ pub(crate) fn equalize_histogram_yuv_impl<const CHANNELS: u8>(
         height,
     };
 
-    structuring(&planar_image, dst, dst_stride, YuvRange::Full, false).unwrap();
+    structuring(&planar_image, dst, dst_stride, YuvRange::Full).unwrap();
 }

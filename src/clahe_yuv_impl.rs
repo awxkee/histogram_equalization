@@ -17,13 +17,7 @@ pub(crate) fn clahe_yuv_impl<const CHANNELS: usize, const IMPLEMENTATION: u8>(
     threshold: f32,
     clahe_grid_size: ClaheGridSize,
     destructuring: fn(&mut YuvPlanarImageMut<u8>, &[u8], u32, YuvRange) -> Result<(), YuvError>,
-    structuring: fn(
-        &YuvPlanarImageWithAlpha<u8>,
-        &mut [u8],
-        u32,
-        YuvRange,
-        bool,
-    ) -> Result<(), YuvError>,
+    structuring: fn(&YuvPlanarImageWithAlpha<u8>, &mut [u8], u32, YuvRange) -> Result<(), YuvError>,
 ) {
     const CHANNEL_POSITION: usize = 0;
     if clahe_grid_size.w == 0 || clahe_grid_size.h == 0 {
@@ -185,5 +179,5 @@ pub(crate) fn clahe_yuv_impl<const CHANNELS: usize, const IMPLEMENTATION: u8>(
         height,
     };
 
-    structuring(&planar_image, dst, dst_stride, YuvRange::Full, false).unwrap();
+    structuring(&planar_image, dst, dst_stride, YuvRange::Full).unwrap();
 }

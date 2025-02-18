@@ -173,9 +173,9 @@ dependencies = [
 
 [[package]]
 name = "colorutils-rs"
-version = "0.7.2"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e1632390e4314e1ce4b4060fbbb36f0d576b994399088bfdfe4216eef0aa54b"
+checksum = "c06bb7c7479a238be740a3312b5693d76e234eb49b73b3e61ae768132c79d06a"
 dependencies = [
  "erydanos",
  "half",
@@ -260,6 +260,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "fast_transpose"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c2d2b59e139013dffe85ab5023a5768d706e5adced64affd9f2c1260228e03b"
+dependencies = [
+ "bytemuck",
+]
+
+[[package]]
 name = "fdeflate"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -323,9 +332,9 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "histogram_equalization"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
- "colorutils-rs 0.7.2",
+ "colorutils-rs 0.7.4",
  "num-traits",
  "rayon",
  "yuvutils-rs",
@@ -1006,10 +1015,11 @@ dependencies = [
 
 [[package]]
 name = "yuvutils-rs"
-version = "0.5.1"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c52aeed0feb4e9fbdb6f10a17564db96a948f9d8a5a73850b884028d3567575"
+checksum = "45d853a7816ee95dd912b6345d93dd5f8e6165858d97484389955f6ce1cb1f37"
 dependencies = [
+ "fast_transpose",
  "num-traits",
 ]
 
