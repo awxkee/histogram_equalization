@@ -1,3 +1,4 @@
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
 mod clahe_call_proxy;
 mod clahe_declarations_hsv;
 mod clahe_declarations_jzazbz;

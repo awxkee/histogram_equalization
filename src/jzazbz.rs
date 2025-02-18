@@ -58,7 +58,7 @@ pub(crate) fn generic_image_to_jzazbz<const IMAGE: u8>(
                 dst_ptr
                     .add(x)
                     .write_unaligned((jzazbz.jz * full_scale).round().min(scale) as u16);
-                *color.get_unchecked_mut(cx + 0) = jzazbz.az;
+                *color.get_unchecked_mut(cx) = jzazbz.az;
                 *color.get_unchecked_mut(cx + 1) = jzazbz.bz;
                 if image_configuration.has_alpha() {
                     let a = *src.get_unchecked(px + image_configuration.get_a_channel_offset());
@@ -114,7 +114,7 @@ pub(crate) fn jzazbz_to_generic_image<const IMAGE: u8>(
 
                 let l = src_ptr.add(x).read_unaligned() as f32 * full_scale;
 
-                let a = *color.get_unchecked(cx + 0);
+                let a = *color.get_unchecked(cx);
                 let b = *color.get_unchecked(cx + 1);
 
                 let rgb = Jzazbz::new(l, a, b);

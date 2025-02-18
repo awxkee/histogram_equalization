@@ -129,6 +129,5 @@ pub(crate) fn make_histogram_region<
         y_shift += stride as usize;
     }
 
-    let hist = ImageHistogram { bins };
-    hist
+    ImageHistogram { bins }
 }

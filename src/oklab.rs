@@ -59,7 +59,7 @@ pub(crate) fn generic_image_to_oklab<const IMAGE: u8>(
                 let value = (oklab.l * full_scale).round().min(scale) as u16;
                 dst_ptr.add(x).write_unaligned(value);
                 // Just for storing in u16 adding 500 to subtract 500 after to keep values in positive range
-                *color.get_unchecked_mut(cx + 0) = oklab.a;
+                *color.get_unchecked_mut(cx) = oklab.a;
                 *color.get_unchecked_mut(cx + 1) = oklab.b;
                 if image_configuration.has_alpha() {
                     let a = *src.get_unchecked(px + image_configuration.get_a_channel_offset());
@@ -115,7 +115,7 @@ pub(crate) fn oklab_to_generic_image<const IMAGE: u8>(
 
                 let l = src_ptr.add(x).read_unaligned() as f32 * full_scale;
 
-                let a = *color.get_unchecked(cx + 0);
+                let a = *color.get_unchecked(cx);
                 let b = *color.get_unchecked(cx + 1);
 
                 let rgb = Oklab::new(l, a, b);

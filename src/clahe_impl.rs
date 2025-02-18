@@ -75,16 +75,13 @@ pub(crate) fn clahe_impl_u16<
             );
 
             let mut bins = region_hist.bins;
-            match implementation {
-                AheImplementation::Clahe => {
-                    clip_hist_clahe(
-                        &mut bins,
-                        threshold,
-                        (end_x - start_x) as usize,
-                        (end_y - start_y) as usize,
-                    );
-                }
-                _ => {}
+            if implementation == AheImplementation::Clahe {
+                clip_hist_clahe(
+                    &mut bins,
+                    threshold,
+                    (end_x - start_x) as usize,
+                    (end_y - start_y) as usize,
+                );
             }
             cdf(&mut bins);
 
@@ -131,8 +128,7 @@ pub(crate) fn clahe_impl_u16<
             let px = x * CHANNELS;
 
             let value = unsafe { *hsv_image.get_unchecked(hsv_offset + px + CHANNEL_POSITION) }
-                .min(max_bins as u16)
-                .max(0u16) as usize;
+                .min(max_bins as u16) as usize;
 
             let r_y = r_y_f.max(0f32) as i64;
             let c_x = c_x_f.max(0f32) as i64;

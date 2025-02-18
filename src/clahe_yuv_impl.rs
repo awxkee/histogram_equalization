@@ -88,16 +88,13 @@ pub(crate) fn clahe_yuv_impl<const CHANNELS: usize, const IMPLEMENTATION: u8>(
             );
 
             let mut bins = region_hist.bins;
-            match implementation {
-                AheImplementation::Clahe => {
-                    clip_hist_clahe(
-                        &mut bins,
-                        threshold,
-                        (end_x - start_x) as usize,
-                        (end_y - start_y) as usize,
-                    );
-                }
-                _ => {}
+            if implementation == AheImplementation::Clahe {
+                clip_hist_clahe(
+                    &mut bins,
+                    threshold,
+                    (end_x - start_x) as usize,
+                    (end_y - start_y) as usize,
+                );
             }
             cdf(&mut bins);
 
@@ -146,7 +143,7 @@ pub(crate) fn clahe_yuv_impl<const CHANNELS: usize, const IMPLEMENTATION: u8>(
                 let y1 = (y as f32 - ((r_y_f as i64) as f32 + 0.5f32) * vertical_tile_size as f32)
                     / vertical_tile_size as f32;
 
-                let value = (*y_data).min(max_bins as u8).max(0u8) as usize;
+                let value = (*y_data).min(max_bins as u8) as usize;
 
                 let r_y = r_y_f.max(0f32) as i64;
                 let c_x = c_x_f.max(0f32) as i64;
