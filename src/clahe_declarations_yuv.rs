@@ -1,4 +1,4 @@
-use yuvutils_rs::{
+use yuv::{
     bgra_to_ycgco444, rgb_to_ycgco444, rgba_to_ycgco444, ycgco444_alpha_to_bgra,
     ycgco444_alpha_to_rgba, ycgco444_to_rgb, YuvError, YuvPlanarImage, YuvPlanarImageWithAlpha,
     YuvRange,

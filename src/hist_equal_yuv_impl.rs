@@ -1,5 +1,5 @@
 use crate::hist_support::{cdf, make_histogram_region, minmax};
-use yuvutils_rs::{BufferStoreMut, YuvError, YuvPlanarImageMut, YuvPlanarImageWithAlpha, YuvRange};
+use yuv::{BufferStoreMut, YuvError, YuvPlanarImageMut, YuvPlanarImageWithAlpha, YuvRange};
 
 #[allow(dead_code)]
 pub(crate) fn equalize_histogram_yuv_impl<const CHANNELS: u8>(
@@ -15,10 +15,9 @@ pub(crate) fn equalize_histogram_yuv_impl<const CHANNELS: u8>(
     let bins_count = 256;
 
     let y_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
-
     let u_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
-
     let v_plane: Vec<u8> = vec![0u8; width as usize * height as usize];
+
     let mut a_plane = if CHANNELS == 4 {
         vec![0u8; width as usize * height as usize]
     } else {

@@ -4,7 +4,7 @@ use crate::hist_support::{
 use crate::{ClaheGridSize, ImageHistogram};
 use rayon::iter::{IndexedParallelIterator, ParallelIterator};
 use rayon::prelude::ParallelSliceMut;
-use yuvutils_rs::{BufferStoreMut, YuvError, YuvPlanarImageMut, YuvPlanarImageWithAlpha, YuvRange};
+use yuv::{BufferStoreMut, YuvError, YuvPlanarImageMut, YuvPlanarImageWithAlpha, YuvRange};
 
 #[allow(dead_code)]
 pub(crate) fn clahe_yuv_impl<const CHANNELS: usize, const IMPLEMENTATION: u8>(

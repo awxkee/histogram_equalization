@@ -24,7 +24,6 @@ checksum = "4c95c10ba0b00a02636238b814946408b1322d5ac4760326e6fb8ec956d85775"
 name = "app"
 version = "0.1.0"
 dependencies = [
- "colorutils-rs 0.3.5",
  "histogram_equalization",
  "image",
 ]
@@ -161,15 +160,6 @@ name = "color_quant"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d7b894f5411737b7867f4827955924d7c254fc9f4d91a6aad6b097804b1018b"
-
-[[package]]
-name = "colorutils-rs"
-version = "0.3.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83f3edb13b1c70a20cb5bc77e1e3ceecc513eabb09fde143a08bfe7db71d434d"
-dependencies = [
- "half",
-]
 
 [[package]]
 name = "colorutils-rs"
@@ -332,12 +322,12 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "histogram_equalization"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
- "colorutils-rs 0.7.4",
+ "colorutils-rs",
  "num-traits",
  "rayon",
- "yuvutils-rs",
+ "yuv",
 ]
 
 [[package]]
@@ -1014,10 +1004,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "yuvutils-rs"
-version = "0.8.1"
+name = "yuv"
+version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45d853a7816ee95dd912b6345d93dd5f8e6165858d97484389955f6ce1cb1f37"
+checksum = "286db5a334f270dc6fdb6577946d4588768e154bc3dfd291c833cd035afd22f6"
 dependencies = [
  "fast_transpose",
  "num-traits",
