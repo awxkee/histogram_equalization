@@ -1,4 +1,5 @@
 use crate::hist_support::{cdf, make_histogram_region, minmax};
+use colorutils_rs::{BufferStore, ColorError, ImageBuffer, ImageBufferMut};
 
 #[allow(dead_code)]
 pub(crate) fn equalize_histogram_impl<const CHANNELS: usize, const CHANNEL_POSITION: usize>(
@@ -9,8 +10,16 @@ pub(crate) fn equalize_histogram_impl<const CHANNELS: usize, const CHANNEL_POSIT
     width: u32,
     height: u32,
     bins_count: usize,
-    destructuring: fn(&[u8], u32, &mut [u16], u32, u32, u32, f32),
-    structuring: fn(&[u16], u32, &mut [u8], u32, u32, u32, f32),
+    destructuring: fn(
+        &ImageBuffer<'_, u8>,
+        &mut ImageBufferMut<'_, u16>,
+        f32,
+    ) -> Result<(), ColorError>,
+    structuring: fn(
+        &ImageBuffer<'_, u16>,
+        &mut ImageBufferMut<'_, u8>,
+        f32,
+    ) -> Result<(), ColorError>,
 ) {
     if bins_count <= 1 {
         panic!("Bins count must be more than one");
@@ -19,16 +28,22 @@ pub(crate) fn equalize_histogram_impl<const CHANNELS: usize, const CHANNEL_POSIT
     let mut hsv_image: Vec<u16> = vec![0u16; width as usize * height as usize * CHANNELS];
     let hsv_stride = width as usize * CHANNELS;
 
-    destructuring(
-        src,
-        src_stride,
-        &mut hsv_image,
-        hsv_stride as u32 * std::mem::size_of::<u16>() as u32,
+    let src_image = ImageBuffer {
+        data: std::borrow::Cow::Borrowed(src),
+        stride: src_stride,
         width,
         height,
-        (bins_count - 1) as f32,
-    );
+        channels: CHANNELS as u32,
+    };
+    let mut dst_image_hsv = ImageBufferMut {
+        data: BufferStore::Borrowed(&mut hsv_image),
+        stride: hsv_stride as u32,
+        width,
+        height,
+        channels: 3,
+    };
 
+    _ = destructuring(&src_image, &mut dst_image_hsv, (bins_count - 1) as f32);
     let histogram = make_histogram_region::<CHANNEL_POSITION, CHANNELS, u16>(
         &hsv_image,
         hsv_stride as u32,
@@ -76,13 +91,20 @@ pub(crate) fn equalize_histogram_impl<const CHANNELS: usize, const CHANNEL_POSIT
         y_shift += hsv_stride;
     }
 
-    structuring(
-        &hsv_image,
-        hsv_stride as u32 * std::mem::size_of::<u16>() as u32,
-        dst,
-        dst_stride,
+    let mut dst_image = ImageBufferMut {
+        data: BufferStore::Borrowed(dst),
+        stride: dst_stride,
         width,
         height,
-        (bins_count - 1) as f32,
-    );
+        channels: CHANNELS as u32,
+    };
+    let src_image_hsv = ImageBuffer {
+        data: std::borrow::Cow::Borrowed(&hsv_image),
+        stride: hsv_stride as u32,
+        width,
+        height,
+        channels: 3,
+    };
+
+    _ = structuring(&src_image_hsv, &mut dst_image, (bins_count - 1) as f32);
 }

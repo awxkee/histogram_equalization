@@ -1,7 +1,7 @@
 use image::{DynamicImage, EncodableLayout, GenericImageView, ImageReader};
 use std::time::Instant;
 
-use histogram_equalization::{clahe_yuv_rgb, ClaheGridSize};
+use histogram_equalization::{clahe_hsv_rgb, clahe_lab_rgb, clahe_luv_rgb, clahe_oklab_rgb, clahe_yuv_rgb, ClaheGridSize};
 
 fn main() {
     let img: DynamicImage = ImageReader::open("assets/asset_1.jpg")
@@ -20,7 +20,7 @@ fn main() {
 
     let start_time = Instant::now();
 
-    clahe_yuv_rgb(
+    clahe_oklab_rgb(
         src_bytes,
         stride as u32,
         &mut dst_bytes,
@@ -29,6 +29,7 @@ fn main() {
         dimensions.1,
         1.3f32,
         ClaheGridSize::new(8, 8),
+        256,
     );
 
     println!("exec time {:?}", start_time.elapsed());

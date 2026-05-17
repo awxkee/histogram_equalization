@@ -5,7 +5,6 @@ use colorutils_rs::{Oklab, Rgb, TransferFunction};
 use rayon::iter::{IndexedParallelIterator, ParallelIterator};
 use rayon::prelude::{ParallelSlice, ParallelSliceMut};
 
-#[inline]
 pub(crate) fn generic_image_to_oklab<const IMAGE: u8>(
     src: &[u8],
     src_stride: u32,
@@ -69,7 +68,6 @@ pub(crate) fn generic_image_to_oklab<const IMAGE: u8>(
         });
 }
 
-#[inline]
 pub(crate) fn oklab_to_generic_image<const IMAGE: u8>(
     src: &[u16],
     src_stride: u32,
